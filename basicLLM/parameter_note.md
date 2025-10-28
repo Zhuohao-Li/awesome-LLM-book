@@ -55,4 +55,4 @@ $$
 P(y_i) = \frac{e^{z_i/T}}{\sum _j e^{z_j/T}}
 $$
 
-$T>0$ 
+$T=1$ means origin distribution, $T>1$ means more smooth, during eval, $T=0$ for deterministic inference.
