@@ -1,18 +1,90 @@
-# DAPO：Decoupled Clip and Dynamic sAmpling Policy Optimization
+# `top_k` `top_p`
+这两个参数是控制sample范围的，我们只取logits中prob最高的`top_k`个token，在他们之间做norm之后sample，这是控制greedy程度的参数。
 
-## 一、背景与动机
-- 现有用于 LLM 推理增强的强化学习方法（如 GRPO、DeepSeek-R1）多为闭源或细节不透明，难以复现。
-- **DAPO** 的目标是为大规模 LLM 强化学习提供一个 **稳定、高效、可复现** 的优化框架。
-- 作者在 Qwen2.5-32B 模型上用 DAPO 实现了 AIME 2024 数学任务超过 50% 准确率，训练步数约为先前方法的一半。
-- 针对强化学习中常见的挑战：稀疏奖励、训练不稳定、熵崩溃（entropy collapse）、样本效率低，DAPO 提出了多项改进。
+`top_p`控制nucleus sampling，我们只取prob达到`top_p`的token集合，这是控制多样性的。
+
+# REINFORCE
+
+$$
+L(\theta) = -A_t \text{log}\pi _{\theta}(a_t)
+$$
+
+
+对softmax的求导:
+
+$$
+\nabla \pi _{\theta} (i) = \pi _{\theta} (i) (\delta _{ik} - \pi _{\theta} (k))
+$$
+
+设输入向量  $z \in \mathbb{R}^V $，其 softmax 定义为：
+
+$$
+\pi(i) = \mathrm{softmax}(z)_i = \frac{e^{z_i}}{\sum_{j} e^{z_j}}.
+$$
+
+
+
+$$
+\frac{\partial \pi(i)}{\partial z_k}
+= \pi(i)\big(\mathbf{1}[i=k]-\pi(k)\big).
+$$
+
+
+$$
+\nabla_{z}\pi = \mathrm{diag}(\pi) - \pi\,\pi^\top.
+$$
 
 ---
 
-## 二、算法结构与关键技术
+**推导过程**
+
+$$
+\frac{\partial \pi(i)}{\partial z_k}
+= \frac{e^{z_i}\cdot \mathbf{1}[i=k]\sum_j e^{z_j} - e^{z_i}\cdot e^{z_k}}
+{(\sum_j e^{z_j})^2}
+= \frac{e^{z_i}}{\sum_j e^{z_j}}
+\Big(\mathbf{1}[i=k]-\frac{e^{z_k}}{\sum_j e^{z_j}}\Big)
+= \pi(i)\big(\mathbf{1}[i=k]-\pi(k)\big).
+$$
+
+---
+
+**REINFORCE 单步梯度**
+
+单步损失定义为：
+
+$$
+\ell_t = -A_t \log \pi(a_t)
+$$
+
+对 logits 求导：
+
+$$
+\frac{\partial \ell_t}{\partial z_k}
+= -A_t \frac{\partial \log \pi(a_t)}{\partial z_k}
+= -A_t(\mathbf{1}[a_t=k]-\pi(k))
+= A_t(\pi(k)-\mathbf{1}[k=a_t]).
+$$
+
+向量形式：
+
+$$
+\nabla_{z}\ell_t = A_t(\pi - e_{a_t}),
+$$
+
+并且满足归一性质：
+
+$$
+\sum_k \frac{\partial \ell_t}{\partial z_k} = A_t(\sum_k \pi(k) - 1) = 0.
+$$
+
+
+
+# DAPO：Decoupled Clip and Dynamic sAmpling Policy Optimization
 
 | 技术 | 描述 | 目的 |
 |------|------|------|
-| **Clip-Higher** | 对策略比率 `r_t = pi_theta(a_t)/pi_old(a_t)` 使用更高的裁剪上限。 | 防止策略更新过度保守，缓解熵崩溃问题。 |
+| **Clip-Higher** | 对策略比率 $r_t = \frac{\pi(a_t)}{\pi_{old}(a_t)}$ 使用更高的裁剪上限。 | 防止策略更新过度保守，缓解熵崩溃问题。 |
 | **Dynamic Sampling** | 动态筛选训练样本，剔除那些“全对”或“全错”的 prompt。 | 提高样本效率与梯度信号质量。 |
 | **Token-level Policy Gradient** | 在 token 级别而非整句级别进行策略梯度优化。 | 适应长链式推理任务，缓解稀疏奖励问题。 |
 | **Overlong Reward Shaping** | 对长生成序列的奖励进行平滑或延迟处理。 | 提升训练稳定性，减少奖励震荡。 |
