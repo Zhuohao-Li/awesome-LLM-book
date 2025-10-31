@@ -1,3 +1,6 @@
+# MTP
+
+
 # `top_k` `top_p`
 这两个参数是控制sample范围的，我们只取logits中prob最高的`top_k`个token，在他们之间做norm之后sample，这是控制greedy程度的参数。
 
