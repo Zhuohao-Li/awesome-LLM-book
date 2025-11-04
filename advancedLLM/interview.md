@@ -122,3 +122,20 @@ $$
 - 梯度能稳定地从输出传回输入；
 - 深层网络（上百层）仍能收敛；
 - 梯度不易爆炸或消失。
+
+
+## FA
+
+v1：基于「IO-aware」思想，通过瓦片 (tiling) 将 QKᵀ·V 计算中对慢速 HBM 的读写降到最少，从而提升速度与内存效率。
+arXiv
++1
+
+v2：改进线程块／warp 内任务划分、减少非‐矩阵乘 (non-GEMM) FLOPs、并行化单头 attention，以大幅提升 GPU 占用率与吞吐率。
+arXiv
++1
+
+v3：针对 Hopper／H100 架构，引入低精度 (FP8)、异步执行 (重叠 GEMM 与 softmax) 以及硬件专用指令 (TMA/WGMMA) 来进一步提升效率。
+tridao.me
++1
+
+v4：通过更细粒度的 warp 专化与流水线 (warp specialization + async pipeline)，软件模拟指数运算、数值复校 (correction step)，以在最新 Blackwell／SM10 架构上突破 PFLOPS 级别。
