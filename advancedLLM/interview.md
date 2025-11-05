@@ -139,3 +139,16 @@ tridao.me
 +1
 
 v4：通过更细粒度的 warp 专化与流水线 (warp specialization + async pipeline)，软件模拟指数运算、数值复校 (correction step)，以在最新 Blackwell／SM10 架构上突破 PFLOPS 级别。
+
+
+## GPU
+
+* warp 是32个thread集合
+* block 是多个warp集合，被SM调度
+* grid 是所有block的集合
+
+warp divergence会带来一个warp里的不同执行路径，导致性能损失，所以需要warp level的优化：
+* warp shuffle/reduction：warp 内线程通过寄存器直接交换数据，不用写到共享内存
+* warp specialization：不同 warp 执行不同角色（如加载数据 / 计算 / 写回）形成流水线
+* warp occupancy：通过控制 warp 数量，最大化 SM 利用率
+

@@ -1,6 +1,20 @@
 # MTP
 
 
+# Model Weights Update in slime
+
+背景：training engine的model更新好之后要传给sgl，我们考虑colocate
+
+baseline：通过`update_weight_from_tensors`，我们不要做真正数据的拷贝，我们利用`cudaIPChandler`（类似指针），传输很小的指针即可
+
+more#1:从training model获取tensor的时候，我们可以做通信异步（TP中的allgather，PP/EP中的broadcast），可以利用`torch.dist`里的`async_op`，这里我们异步的是不同rank的通信过程
+
+more#2:对sgl的update model weight请求太多，不好，因为http请求太多也会拖慢进度。所以做bucket，组多个tensor到一个buffer，达到bucket size一起传，类似batch传输（这是在优化服务器调用）
+
+more#3:还是太多http api call，可以flatten tensor，把多个tensor组成大tensor，只会带来一些rebuild的overhead。（之前很多overhead来自handler的打开/关闭）
+
+more#4:参数dict太大，我们可以cache下来，包括expert dict等，这是在load weight的优化
+
 # `top_k` `top_p`
 这两个参数是控制sample范围的，我们只取logits中prob最高的`top_k`个token，在他们之间做norm之后sample，这是控制greedy程度的参数。
 
