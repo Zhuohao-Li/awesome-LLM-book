@@ -1,6 +1,12 @@
 # MTP
 
 
+# RL/SFT/Pretrain
+
+对于SFT，Pretrain，我们总是可以通过scale GPUs来加速，因为这样就可以降低每张卡上的计算数据。
+
+但是在RL里不然，因为inference的decode的部分是无法通过scale GPU来加速的。本质上SFT/Pretrain的前向过程
+
 # Model Weights Update in slime
 
 背景：training engine的model更新好之后要传给sgl，我们考虑colocate
