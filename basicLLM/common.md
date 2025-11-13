@@ -22,7 +22,7 @@ $$
 
 so we hope predicted $\hat y$ is more closed to 0.
 
-FOr vector like process:
+For vector like process:
 
 $$
 \text{BCE} = - \cfrac{1}{N} \sum ^{N} _{i=1}[y_i \text{log}(\hat y_i) + (1-y_i) \text{log} (1-\hat y_i)]

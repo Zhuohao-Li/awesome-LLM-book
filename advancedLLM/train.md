@@ -1,4 +1,21 @@
-# FSDP
+# FSDP和Megatron
+
+FSDP是PyTorch推出的Fully Sharded DP，而Megatron是NV推出的全方面训练引擎。目前大多数Pretrain都基于Megatron定制，提供最佳的性能。
+
+FSDP的好处：
+* 灵活支持多种模型。用户只需实现相应的 `dtensor_weight_loader` 用于 FSDP 和 vLLM 之间的权重同步。而对于 `hf_weight_loader`，用户可以直接无缝使用 HF 和 vLLM 都支持的任何模型，无需任何代码修改。
+
+FSDP的坏处：
+* 对几百B的大模型scalability不太好，resharding开销大
+
+Megatron的好处：
+* 支持全量并行策略（5D Parallelism：DP/EP/TP/PP/CP，SP），多样的memory优化策略和weight同步策略
+
+Megatron的坏处：
+* 需要将HF转换成Megatron支持的格式
+
+
+
 
 # collective operations
 
