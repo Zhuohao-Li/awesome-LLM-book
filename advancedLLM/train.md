@@ -1,4 +1,4 @@
-# FSDP和Megatron
+## FSDP和Megatron
 
 FSDP是PyTorch推出的Fully Sharded DP，而Megatron是NV推出的全方面训练引擎。目前大多数Pretrain都基于Megatron定制，提供最佳的性能。
 
@@ -17,7 +17,7 @@ Megatron的坏处：
 
 
 
-# collective operations
+## collective operations
 
 refer to [nvidia collective ops](https://docs.nvidia.com/deeplearning/nccl/user-guide/docs/usage/collectives.html)
 
@@ -89,11 +89,11 @@ RS的通信量为$\frac{N-1}{N}G$，AG的通信量为$\frac{N-1}{N}G$，AR的通
 
 
 
-# Parallelism
+## Parallelism
 
 
 
-# ⚙️ DeepSpeed ZeRO 优化器原理与显存分析
+## ⚙️ DeepSpeed ZeRO 优化器原理与显存分析
 
 在传统 **Data Parallel (DP)** 训练中，每个 GPU 都保存完整的：
 - 模型参数（Parameters）
@@ -102,7 +102,7 @@ RS的通信量为$\frac{N-1}{N}G$，AG的通信量为$\frac{N-1}{N}G$，AR的通
 
 当模型规模大（数十亿参数）时，这些三份副本会造成巨大的显存浪费。
 
-## 🚀 ZeRO (Zero Redundancy Optimizer) 的核心思想
+### 🚀 ZeRO (Zero Redundancy Optimizer) 的核心思想
 **方法**：将参数、梯度、优化器状态在不同 GPU 之间进行分片（shard）。  
 
 每个阶段逐步减少冗余：
@@ -115,9 +115,9 @@ RS的通信量为$\frac{N-1}{N}G$，AG的通信量为$\frac{N-1}{N}G$，AR的通
 
 ---
 
-## ⚙️ 各阶段的机制详解
+### ⚙️ 各阶段的机制详解
 
-### 🟩 **ZeRO-1：分片优化器状态**
+#### 🟩 **ZeRO-1：分片优化器状态**
 - **思路**：每个 rank 只保存优化器状态的一部分（例如 Adam 的 `m`, `v`）。
 - **通信**：Allreduce 仍然用于同步完整梯度。
 - **优点**：节省优化器状态内存（通常占总显存 2×参数量）。
@@ -125,7 +125,7 @@ RS的通信量为$\frac{N-1}{N}G$，AG的通信量为$\frac{N-1}{N}G$，AR的通
 
 ---
 
-### 🟦 **ZeRO-2：再分片梯度**
+#### 🟦 **ZeRO-2：再分片梯度**
 - **思路**：在反向传播后，对梯度进行 Reduce-Scatter，使每个 rank 只保留 1/N 的梯度分片。
 - **通信**：用 **ReduceScatter** 代替 **Allreduce**，节省一半通信。
 - **优点**：优化器状态 + 梯度都分片；显存进一步减少。
@@ -133,7 +133,7 @@ RS的通信量为$\frac{N-1}{N}G$，AG的通信量为$\frac{N-1}{N}G$，AR的通
 
 ---
 
-### 🟥 **ZeRO-3：再分片参数**
+#### 🟥 **ZeRO-3：再分片参数**
 - **思路**：参数也在 rank 间分片。  
   - 前向时，按需 Allgather 得到所需层参数；  
   - 反向时，对梯度做 ReduceScatter。
@@ -156,7 +156,7 @@ ZeRO 是 “Data Parallel 形式的 Model Parallelism”
 
 ---
 
-## 📊 显存占用分析示例  
+### 📊 显存占用分析示例  
 **假设**：训练一个 **7B 参数模型**，使用 **8×H100 (80 GB)**，Adam 优化器。
 
 ### 1️⃣ 基本假设
@@ -211,7 +211,7 @@ $$
 
 ---
 
-# ⚙️ 现代 LLM / MoE 训练与推理的数值精度策略总览（2025）
+## ⚙️ 现代 LLM / MoE 训练与推理的数值精度策略总览（2025）
 
 ### 🧠 一、核心目标
 现代大模型训练的精度策略需要同时满足三点：
@@ -245,7 +245,7 @@ $$
 
 ---
 
-## 🧮 三、推理阶段（Inference Phase）
+### 🧮 三、推理阶段（Inference Phase）
 
 | 模块 | 常用精度 | 说明 | 举例 |
 |------|-----------|------|------|
@@ -257,7 +257,7 @@ $$
 
 ---
 
-## 🧩 四、MoE 特有的精度策略
+### 🧩 四、MoE 特有的精度策略
 
 | 部分 | 常用精度 | 说明 |
 |------|-----------|------|
@@ -273,7 +273,7 @@ $$
 
 ---
 
-## 📊 五、典型系统配置一览
+### 📊 五、典型系统配置一览
 
 | 模型 / 框架 | 权重 | 梯度 | 优化器状态 | 激活 | 推理权重 | KV Cache |
 |--------------|--------|----------|------------------|-----------|----------------|-------------|
@@ -285,7 +285,7 @@ $$
 
 ---
 
-## 🧠 六、总结
+### 🧠 六、总结
 
 - **训练时**：  
   - 计算层：BF16 / FP16  

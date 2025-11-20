@@ -1,13 +1,13 @@
 # interview
 
-### nccl
+## nccl
 
 find nccl version
 ```
 find /usr/ -name "libnccl*"
 ```
 
-### nvlink
+## nvlink
 ```
 # check topo
 nvidia-smi topo -m
@@ -16,12 +16,12 @@ nvidia-smi topo -m
 nvidia-smi nvlink --status
 ```
 
-### pre-norm & post-norm
+## pre-norm & post-norm
 
 
 以单个子层为例（比如 Self-Attention），设输入为 \( x_l \)，子层函数为 \( F(\cdot) \)。
 
-### 🔸 Post-Norm（原版 Transformer, Vaswani 2017）
+> Post-Norm（原版 Transformer, Vaswani 2017）
 
 $$
 y_l = x_l + F(x_l)
@@ -44,7 +44,7 @@ $$
 差别：归一化的位置不同。
 
 
-### 🔸 Post-Norm 的梯度路径
+> Post-Norm 的梯度路径
 
 反向传播链式法则：
 
@@ -117,7 +117,7 @@ $$
 即使子层的梯度出问题，恒等残差通路仍然提供稳定的梯度回流路径。
 
 
-### ✅ 结论
+>结论
 
 - 梯度能稳定地从输出传回输入；
 - 深层网络（上百层）仍能收敛；

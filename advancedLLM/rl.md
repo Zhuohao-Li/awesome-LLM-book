@@ -1,13 +1,13 @@
-# MTP
+## MTP
 
 
-# RL/SFT/Pretrain
+## RL/SFT/Pretrain
 
 对于SFT，Pretrain，我们总是可以通过scale GPUs来加速，因为这样就可以降低每张卡上的计算数据。
 
 但是在RL里不然，因为inference的decode的部分是无法通过scale GPU来加速的。本质上SFT/Pretrain的前向过程
 
-# Model Weights Update in slime
+## Model Weights Update in slime
 
 背景：training engine的model更新好之后要传给sgl，我们考虑colocate
 
@@ -21,12 +21,12 @@ more#3:还是太多http api call，可以flatten tensor，把多个tensor组成�
 
 more#4:参数dict太大，我们可以cache下来，包括expert dict等，这是在load weight的优化
 
-# `top_k` `top_p`
+## `top_k` `top_p`
 这两个参数是控制sample范围的，我们只取logits中prob最高的`top_k`个token，在他们之间做norm之后sample，这是控制greedy程度的参数。
 
 `top_p`控制nucleus sampling，我们只取prob达到`top_p`的token集合，这是控制多样性的。
 
-# REINFORCE
+## REINFORCE
 
 $$
 L(\theta) = -A_t \text{log}\pi _{\theta}(a_t)
